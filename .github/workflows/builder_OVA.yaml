@@ -177,6 +177,14 @@ jobs:
           OVA_S3_PATH="s3://${{ env.S3_BUCKET_TO_STORE_OVA }}/${{ env.S3_PATH_TO_STORE_OVA }}/$FILENAME_OVA"
           echo "ova_s3_path=$OVA_S3_PATH" >> $GITHUB_OUTPUT
 
+      - name: Get artifacts URLs file
+        run: |
+          if [ "${{ inputs.wazuh_package_type }}" == "prod" ]; then
+            curl -f "https://packages.wazuh.com/production/${{ env.WAZUH_MAJOR }}.x/artifact_urls_${{ env.WAZUH_VERSION }}.yaml" -o ${{ env.LOCAL_ARTIFACT_URLS_FILEPATH }}
+          elif [ "${{ inputs.wazuh_package_type }}" == "pre-prod" ]; then
+            curl -f "https://packages-staging.xdrsiem.wazuh.info/pre-release/${{ env.WAZUH_MAJOR }}.x/artifact_urls_${{ env.WAZUH_VERSION }}-${{ env.WAZUH_REVISION }}.yaml" -o ${{ env.LOCAL_ARTIFACT_URLS_FILEPATH }}
+          fi
+
       - name: Allocate EC2 metal instance
         id: alloc_vm_ova
         run: |
@@ -223,14 +231,6 @@ jobs:
           echo "INSTANCE_USER=ec2-user" >> $GITHUB_ENV
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_OUTPUT
-
-      - name: Get artifacts URLs file
-        run: |
-          if [ "${{ inputs.wazuh_package_type }}" == "prod" ]; then
-            curl -f "https://packages.wazuh.com/production/${{ env.WAZUH_MAJOR }}.x/artifact_urls_${{ env.WAZUH_VERSION }}.yaml" -o ${{ env.LOCAL_ARTIFACT_URLS_FILEPATH }}
-          elif [ "${{ inputs.wazuh_package_type }}" == "pre-prod" ]; then
-            curl -f "https://packages-staging.xdrsiem.wazuh.info/pre-release/${{ env.WAZUH_MAJOR }}.x/artifact_urls_${{ env.WAZUH_VERSION }}-${{ env.WAZUH_REVISION }}.yaml" -o ${{ env.LOCAL_ARTIFACT_URLS_FILEPATH }}
-          fi
 
       - name: Install necessary dependencies in the AWS instance to create the OVA
         run: |
